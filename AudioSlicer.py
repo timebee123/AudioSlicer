@@ -37,13 +37,29 @@ class AudioSlicerApp:
         self.output_label.grid(row=1, column=1, sticky=tk.W, columnspan=3)
         ttk.Button(frm, text="Choose Output Dir", command=self.choose_output_dir).grid(row=1, column=4)
 
-        # Silence threshold scale (ms)
-        ttk.Label(frm, text="Min silence duration (ms):").grid(row=2, column=0, sticky=tk.W)
-        self.scale = ttk.Scale(frm, from_=300, to=1000, orient=tk.HORIZONTAL, command=self._on_scale)
-        self.scale.set(self.min_silence_ms.get())
-        self.scale.grid(row=2, column=1, columnspan=3, sticky=tk.EW)
-        self.scale_value = ttk.Label(frm, textvariable=self.min_silence_ms)
-        self.scale_value.grid(row=2, column=4, sticky=tk.W)
+        # Silence threshold buttons (predefined values)
+        ttk.Label(frm, text="Min silence duration:").grid(row=2, column=0, sticky=tk.W)
+        
+        # Frame for buttons
+        btn_frame = ttk.Frame(frm)
+        btn_frame.grid(row=2, column=1, columnspan=3, sticky=tk.W, padx=4)
+        
+        # Predefined silence duration buttons: 0.5s, 1s, 1.5s, 2s
+        self.silence_values = [500, 1000, 1500, 2000]
+        self.silence_labels = ["0.5s", "1s", "1.5s", "2s"]
+        
+        for i, (value, label) in enumerate(zip(self.silence_values, self.silence_labels)):
+            btn = ttk.Button(
+                btn_frame, 
+                text=label, 
+                width=5,
+                command=lambda v=value: self._set_silence_duration(v)
+            )
+            btn.pack(side=tk.LEFT, padx=2)
+        
+        # Display current value
+        self.silence_display = ttk.Label(frm, textvariable=self.min_silence_ms, width=8)
+        self.silence_display.grid(row=2, column=4, sticky=tk.W, padx=4)
 
         # Start button
         self.start_btn = ttk.Button(frm, text="Start Slicing", command=self.start_slicing)
@@ -59,11 +75,9 @@ class AudioSlicerApp:
         for i in range(5):
             frm.columnconfigure(i, weight=1 if i in (1,2,3) else 0)
 
-    def _on_scale(self, val):
-        try:
-            self.min_silence_ms.set(int(float(val)))
-        except Exception:
-            pass
+    def _set_silence_duration(self, value):
+        """Set the silence duration to a predefined value"""
+        self.min_silence_ms.set(value)
 
     def choose_file(self):
         path = filedialog.askopenfilename(filetypes=[("Audio", "*.mp3 *.m4a")])
